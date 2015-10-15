@@ -8,7 +8,7 @@ class Player:
         self.name = name
 
     def decide_initial_placement(self):
-        return 'xxxxoooo'
+        return 'oxxoxoox'
 
     def choice_move(self, board, took_pieces):
         my_pieces = []
@@ -21,7 +21,7 @@ class Player:
         for y, x in my_pieces:
             for dy, dx in d:
                 if 0 <= y + dy < 6 and 0 <= x + dx < 6:
-                    if board[y + dy][x + dx] == 0: #TODO: To accept take opponent pieces
+                    if board[y + dy][x + dx] == 0:  # TODO: To accept take opponent pieces
                         queue.append((y, x, y + dy, x + dx))
         return random.choice(queue)
 
@@ -64,6 +64,8 @@ class Gister:
                     piece = pattern[i * 4 + j]
                     piece_index = 'ox'.index(piece) + 2 * initiative + 1
                     self.board[y][x] = piece_index
+        else:
+            print('wrong pattern')
 
     def is_finish(self):
         if (self.board[5][0] == 1 or self.board[5][5] == 1) and self.turn % 2 == 0:
@@ -78,10 +80,6 @@ class Gister:
             return True
         return False
 
-        # if self.turn > 10:
-        #     return False
-        # return True
-
     def get_status(self):
         status = '----------\n'
         status += 'Turn ' + str(self.turn) + '\n'
@@ -90,26 +88,37 @@ class Gister:
         return status
 
     def play(self):
-        sy,sx,ty,tx = self.players[self.turn % 2].choice_move(self.board, self.took_pieces)
-        print((sy,sx),(ty,tx))
+        initiative = self.turn % 2
+        turn_player = self.players[self.turn % 2]
+        if initiative == 0:
+            b = copy.deepcopy(self.board)
+        elif initiative == 1:
+            b = [[0 for j in range(6)] for i in range(6)]
+            for i in range(6):
+                for j in range(6):
+                    b[i][j] = self.board[5 - i][5 - j]
+
+        sy, sx, ty, tx = turn_player.choice_move(b, self.took_pieces)
+        if initiative == 1:
+            sy, sx, ty, tx = 5 - sy, 5 - sx, 5 - ty, 5 - tx
         source_cell = self.board[sy][sx]
         target_cell = self.board[ty][tx]
-        initiative = self.turn%2
-        if initiative == 0 and(source_cell==1 or source_cell == 2):
-            if target_cell in [0,3,4]:
+        if initiative == 0 and (source_cell == 1 or source_cell == 2):
+            if target_cell in [0, 3, 4]:
                 self.board[ty][tx] = source_cell
                 self.board[sy][sx] = 0
             else:
                 print('illegal move')
                 exit()
-        if initiative == 1 and(source_cell==3 or source_cell == 4):
-            if target_cell in [0,1,2]:
+        if initiative == 1 and (source_cell == 3 or source_cell == 4):
+            if target_cell in [0, 1, 2]:
                 self.board[ty][tx] = source_cell
                 self.board[sy][sx] = 0
             else:
                 print('illegal move')
                 exit()
         self.turn += 1
+
     def get_winner(self):
         if (self.board[5][0] == 1 or self.board[5][5] == 1) and self.turn % 2 == 0:
             return 0
@@ -119,13 +128,12 @@ class Gister:
         for i in range(6):
             for j in range(6):
                 cnt[self.board[i][j]] += 1
-        if cnt[2]==0 or cnt[3] == 0:
+        if cnt[2] == 0 or cnt[3] == 0:
             return 0
-        elif cnt[1]==0 or cnt[4]==0:
+        elif cnt[1] == 0 or cnt[4] == 0:
             return 0
         else:
             return -1
-
 
 
 def play():
