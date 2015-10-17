@@ -11,7 +11,6 @@ class Player:
         return 'eeeegggg'
 
     def choice_move(self, goods, evils, enemies, captured):
-        print(goods, evils, enemies, captured)
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
@@ -74,7 +73,7 @@ class Geister:
 
     def is_finish(self):
         active = self.turn % 2
-        if any((g == (5 * ((active+1)%2) + 0, 0)) or (g == (5 * 5 * ((active+1)%2) + 0, 5)) for g in self.goods[active]):
+        if any((g == (5 * ((active + 1) % 2) + 0, 0)) or (g == (5 * 5 * ((active + 1) % 2) + 0, 5)) for g in self.goods[active]):
             return True
         if any(len(self.goods[i]) == 0 for i in range(2)) or any(len(self.evils[i]) == 0 for i in range(2)):
             return True
@@ -91,7 +90,7 @@ class Geister:
             for y, x in self.evils[i]:
                 board[y][x] = 'eE'[i]
         for i in range(6):
-            status += str(board[i]) + '\n'
+            status += ''.join(c for c in board[i]) + '\n'
         return status
 
     def play(self):
@@ -122,10 +121,12 @@ class Geister:
             exit()
         if (ty, tx) in enemies:
             if (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.goods[(active + 1) % 2]:
-                self.goods[(active + 1) % 2].remove((ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active))
+                self.goods[(active + 1) % 2].remove((ty + (5 - 2 * ty)
+                                                     * active, tx + (5 - 2 * tx) * active))
                 self.captured[(active + 1) % 2]['good'] += 1
             elif (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.goods[(active + 1) % 2]:
-                self.evils[(active + 1) % 2].remove((ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active))
+                self.evils[(active + 1) % 2].remove((ty + (5 - 2 * ty)
+                                                     * active, tx + (5 - 2 * tx) * active))
                 self.captured[(active + 1) % 2]['evil'] += 1
             else:
                 print('nanika okashii')
@@ -144,9 +145,9 @@ class Geister:
 
     def get_winner(self):
         for i in range(2):
-            if any((g == (5 * ((i+1)%2) + 0, 0)) or (g == (5 * ((i+1)%2) + 0, 5)) for g in self.goods[i]):
+            if any((g == (5 * ((i + 1) % 2) + 0, 0)) or (g == (5 * ((i + 1) % 2) + 0, 5)) for g in self.goods[i]):
                 return i
-            if len(self.goods[(i+1)%2]) == 0 or len(self.evils[i]) == 0:
+            if len(self.goods[(i + 1) % 2]) == 0 or len(self.evils[i]) == 0:
                 return i
         return -1
 
