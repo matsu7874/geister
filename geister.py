@@ -7,6 +7,9 @@ class Player:
     def __init__(self, name='Alex'):
         self.name = name
 
+    def get_name(self):
+        return self.name
+
     def decide_initial_placement(self):
         return 'eeeegggg'
 
