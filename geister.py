@@ -35,7 +35,7 @@ class Geister:
         if isinstance(players, list):
             self.players = players
         else:
-            print('a')
+            print('second argument must be list of player')
             exit()
         self.turn = 0
         self.goods = [[] for i in range(2)]
@@ -72,7 +72,7 @@ class Geister:
                     else:
                         self.evils[active].append((y, x))
         else:
-            print('wrong pattern')
+            print('In set_initial_placement(), pattern is wrong pattern')
 
     def is_finish(self):
         active = self.turn % 2
