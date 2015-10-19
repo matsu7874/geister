@@ -132,11 +132,11 @@ class Geister:
     def is_finish(self):
         if self.winner is not None:
             return True
+        if any((g == (5 * ((self.turn%2 + 1) % 2) + 0, 0)) or (g == (5 * ((self.turn%2 + 1) % 2) + 0, 5)) for g in self.goods[self.turn%2]):
+            self.winner = self.turn%2
+            self.reason = 'escapable from the deepest line'
+            return True
         for i in range(2):
-            if any((g == (5 * ((i + 1) % 2) + 0, 0)) or (g == (5 * ((i + 1) % 2) + 0, 5)) for g in self.goods[i]):
-                self.winner = i
-                self.reason = 'escapable from the deepest line'
-                return True
             if len(self.goods[(i + 1) % 2]) == 0:
                 self.winner = i
                 self.reason = "captured all opponent's good ghosts"
