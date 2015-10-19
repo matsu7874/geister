@@ -93,23 +93,23 @@ class AiPlayer(Player):
                         queue.append((y, x, y + dy, x + dx))
         pointed_queue = []
         for sy, sx, ty, tx in queue:
+            if (sy,sx) in goods:
+                move_good = 1
+            else:
+                move_good = 0
             score = 0
-            if (sy, sx) in enemies:
-                score -= len(goods) + len(evils)
+            score -= 3*((5-sy)+min(sx,5-sx))**2
+            score += 3*((5-ty)+min(tx,5-tx))**2
+            for dy,dx in d:
+                if (sy+dy, sx+dx) in enemies:
+                    score -= 20*move_good+5
+                if (ty+dy, tx+dx) in enemies:
+                    score += 20*move_good+5
             if (ty, tx) in enemies:
-                if captured['evil'] < 3:
-                    score -= 10
+                if captured['evil']==3:
+                    score += 30
                 else:
-                    score += 5
-            for y, x in goods:
-                if sy == y and sx == x:
-                    score += (5 - ty)**2 + min(tx**2, (5 - tx)**2)
-                else:
-                    score += (5 - y)**2 + min(tx**2, (5 - x)**2)
-                for ey, ex in enemies:
-                    for dy, dx in d:
-                        if ey == y + dy and ex == x + dx:
-                            score += 15
+                    score -= (7-ty-min(tx,5-tx))**2.5
 
             pointed_queue.append((score, (sy, sx, ty, tx)))
 
