@@ -98,8 +98,8 @@ class AiPlayer(Player):
             else:
                 move_good = 0
             score = 0
-            score -= 3*((5-sy)+min(sx,5-sx))**2
-            score += 3*((5-ty)+min(tx,5-tx))**2
+            score -= 5*((5-sy)+min(sx,5-sx))**2
+            score += 5*((5-ty)+min(tx,5-tx))**2
             for dy,dx in d:
                 if (sy+dy, sx+dx) in enemies:
                     score -= 20*move_good+5
@@ -107,9 +107,9 @@ class AiPlayer(Player):
                     score += 20*move_good+5
             if (ty, tx) in enemies:
                 if captured['evil']==3:
-                    score += 30
+                    score += 300
                 else:
-                    score -= (7-ty-min(tx,5-tx))**2.5
+                    score -= (7-ty-min(tx,5-tx))**4
 
             pointed_queue.append((score, (sy, sx, ty, tx)))
 
