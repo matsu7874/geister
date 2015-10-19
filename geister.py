@@ -29,13 +29,51 @@ class Player:
         return random.choice(queue)
 
 
+class ManualPlayer(Player):
+
+    def __init__(self, name='Alex'):
+        print('Input your name')
+        name = input()
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+    def decide_initial_placement(self):
+        print('input initial placement of pieces')
+        s = ''
+        if len(s) != 8:
+            s = input()
+        return s
+
+    def choice_move(self, goods, evils, enemies, captured):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        queue = []
+        my_ghosts = []
+        for g in goods:
+            my_ghosts.append(g)
+        for e in evils:
+            my_ghosts.append(e)
+        for y, x in my_ghosts:
+            for dy, dx in d:
+                if 0 <= y + dy < 6 and 0 <= x + dx < 6:
+                    if (y + dy, x + dx) not in my_ghosts:
+                        queue.append((y, x, y + dy, x + dx))
+        sy, sx, ty, tx = -1, -1, -1, -1
+        while (sy, sx, ty, tx) not in queue:
+            print('input move\nsource_y source_x target_y target_x\nex. 1 3 2 3\n')
+            sy, sx, ty, tx = map(int, input().split())
+
+        return (sy, sx, ty, tx)
+
+
 class Geister:
 
     def __init__(self, players):
         if isinstance(players, list):
             self.players = players
         else:
-            print('second argument must be list of player')
+            print('first argument must be list of player')
             exit()
         self.turn = 0
         self.goods = [[] for i in range(2)]
@@ -44,6 +82,7 @@ class Geister:
         for i in range(2):
             initial_placement = self.players[i].decide_initial_placement()
             self.set_initial_placement(i, initial_placement)
+        self.winner = None
 
     def validate_initial_placement(self, pattern):
         cnt_g = 0
@@ -74,16 +113,8 @@ class Geister:
         else:
             print('In set_initial_placement(), pattern is wrong pattern')
 
-    def is_finish(self):
-        active = self.turn % 2
-        if any((g == (5 * ((active + 1) % 2) + 0, 0)) or (g == (5 * 5 * ((active + 1) % 2) + 0, 5)) for g in self.goods[active]):
-            return True
-        if any(len(self.goods[i]) == 0 for i in range(2)) or any(len(self.evils[i]) == 0 for i in range(2)):
-            return True
-        return False
-
     def get_status(self):
-        status = '----------\n'
+        status = ''
         status += 'Turn ' + str(self.turn) + ' Player ' + \
             str(self.turn % 2) + '\n'
         board = [['-' for j in range(6)] for i in range(6)]
@@ -94,6 +125,9 @@ class Geister:
                 board[y][x] = 'eE'[i]
         for i in range(6):
             status += ''.join(c for c in board[i]) + '\n'
+        if self.winner is not None:
+            status += 'Winner is ' + str(self.winner) + '\n'
+            status += 'win reason is ' + self.reason + '\n'
         return status
 
     def play(self):
@@ -127,7 +161,7 @@ class Geister:
                 self.goods[(active + 1) % 2].remove((ty + (5 - 2 * ty)
                                                      * active, tx + (5 - 2 * tx) * active))
                 self.captured[(active + 1) % 2]['good'] += 1
-            elif (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.goods[(active + 1) % 2]:
+            elif (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.evils[(active + 1) % 2]:
                 self.evils[(active + 1) % 2].remove((ty + (5 - 2 * ty)
                                                      * active, tx + (5 - 2 * tx) * active))
                 self.captured[(active + 1) % 2]['evil'] += 1
@@ -146,24 +180,34 @@ class Geister:
 
         self.turn += 1
 
-    def get_winner(self):
+    def is_finish(self):
+        if self.winner is not None:
+            return True
         for i in range(2):
             if any((g == (5 * ((i + 1) % 2) + 0, 0)) or (g == (5 * ((i + 1) % 2) + 0, 5)) for g in self.goods[i]):
-                return i
-            if len(self.goods[(i + 1) % 2]) == 0 or len(self.evils[i]) == 0:
-                return i
-        return -1
+                self.winner = i
+                self.reason = 'escapable from the deepest line'
+                return True
+            if len(self.goods[(i + 1) % 2]) == 0:
+                self.winner = i
+                self.reason = "captured all opponent's good ghosts"
+                return True
+            if len(self.evils[i]) == 0:
+                self.winner = i
+                self.reason = "captured all own evil ghosts"
+                return True
+        return False
 
 
 def play():
+    # players = [ManualPlayer(), Player()]
     players = [Player(), Player()]
-    g = Geister(players)
-    print('setup is finish')
-    while not g.is_finish():
+    for i in range(100):
+        g = Geister(players)
+        while not g.is_finish():
+            # print(g.get_status())
+            g.play()
         print(g.get_status())
-        g.play()
-    print(g.get_status())
-    print(g.get_winner())
 
 if __name__ == '__main__':
     play()
