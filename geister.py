@@ -17,6 +17,7 @@ class Geister:
             initial_placement = self.players[i].decide_initial_placement()
             self.set_initial_placement(i, initial_placement)
         self.winner = None
+        self.reason = None
 
     def validate_initial_placement(self, pattern):
         cnt_g = 0
@@ -69,9 +70,10 @@ class Geister:
         status.update({'turn': self.turn, 'active_player': self.turn % 2})
         status.update({'active_goods': copy.copy(self.goods[self.turn % 2])})
         status.update({'active_evils': copy.copy(self.evils[self.turn % 2])})
+        status.update({'captured':copy.copy(self.captured[(self.turn+1) % 2])})
         status.update({'opponent_goods': copy.copy(
             self.goods[(self.turn + 1) % 2])})
-        status.update({'opponent_goods': copy.copy(
+        status.update({'opponent_evils': copy.copy(
             self.evils[(self.turn + 1) % 2])})
         status.update({'winner': self.winner})
         status.update({'reason': self.reason})
