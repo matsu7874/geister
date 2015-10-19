@@ -47,7 +47,7 @@ class Geister:
         else:
             print('In set_initial_placement(), pattern is wrong pattern')
 
-    def get_status(self):
+    def print_status(self):
         status = ''
         status += 'Turn ' + str(self.turn) + ' Player ' + \
             str(self.turn % 2) + '\n'
@@ -62,6 +62,19 @@ class Geister:
         if self.winner is not None:
             status += 'Winner is ' + str(self.winner) + '\n'
             status += 'win reason is ' + self.reason + '\n'
+        return status
+
+    def get_status(self):
+        status = {}
+        status.update({'turn': self.turn, 'active_player': self.turn % 2})
+        status.update({'active_goods': copy.copy(self.goods[self.turn % 2])})
+        status.update({'active_evils': copy.copy(self.evils[self.turn % 2])})
+        status.update({'opponent_goods': copy.copy(
+            self.goods[(self.turn + 1) % 2])})
+        status.update({'opponent_goods': copy.copy(
+            self.evils[(self.turn + 1) % 2])})
+        status.update({'winner': self.winner})
+        status.update({'reason': self.reason})
         return status
 
     def play(self):
