@@ -28,9 +28,17 @@ def ai_play():
             result[status['winner']].update({status['reason']:1})
         if i%100==0:
             print(i)
+            win = [0,0]
+            for i in range(2):
+                for k,v in result[i].items():
+                    print(i,k,v)
+                    win[i]+= v
+            print(win[0],'/',win[1])
+    win = [0,0]
     for i in range(2):
         for k,v in result[i].items():
             print(i,k,v)
-
+            win[i]+= v
+    print(win[0],'/',win[1])
 if __name__ == '__main__':
     ai_play()
