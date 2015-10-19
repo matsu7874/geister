@@ -70,7 +70,8 @@ class Geister:
         status.update({'turn': self.turn, 'active_player': self.turn % 2})
         status.update({'active_goods': copy.copy(self.goods[self.turn % 2])})
         status.update({'active_evils': copy.copy(self.evils[self.turn % 2])})
-        status.update({'captured':copy.copy(self.captured[(self.turn+1) % 2])})
+        status.update({'captured': copy.copy(
+            self.captured[(self.turn + 1) % 2])})
         status.update({'opponent_goods': copy.copy(
             self.goods[(self.turn + 1) % 2])})
         status.update({'opponent_evils': copy.copy(
@@ -132,8 +133,8 @@ class Geister:
     def is_finish(self):
         if self.winner is not None:
             return True
-        if any((g == (5 * ((self.turn%2 + 1) % 2) + 0, 0)) or (g == (5 * ((self.turn%2 + 1) % 2) + 0, 5)) for g in self.goods[self.turn%2]):
-            self.winner = self.turn%2
+        if any((g == (5 * ((self.turn % 2 + 1) % 2) + 0, 0)) or (g == (5 * ((self.turn % 2 + 1) % 2) + 0, 5)) for g in self.goods[self.turn % 2]):
+            self.winner = self.turn % 2
             self.reason = 'escapable from the deepest line'
             return True
         for i in range(2):
