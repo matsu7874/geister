@@ -3,7 +3,7 @@ import geister
 
 
 def manual_play():
-    players = [player.ManualPlayer(), player.Player()]
+    players = [player.ManualPlayer('Me'), player.AiPlayer('AI')]
     g = geister.Geister(players)
     while not g.is_finish():
         status = g.get_status()
