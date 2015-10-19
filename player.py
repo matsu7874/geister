@@ -39,9 +39,9 @@ class ManualPlayer(Player):
         return self.name
 
     def decide_initial_placement(self):
-        print('input initial placement of pieces')
         s = ''
-        if len(s) != 8:
+        while not(len(s) == 8 and all(c == 'g' or c == 'e' for c in s)):
+            print('input initial placement of pieces')
             s = input()
         return s
 
@@ -60,7 +60,10 @@ class ManualPlayer(Player):
                         queue.append((y, x, y + dy, x + dx))
         sy, sx, ty, tx = -1, -1, -1, -1
         while (sy, sx, ty, tx) not in queue:
-            print('input move\nsource_y source_x target_y target_x\nex. 1 3 2 3\n')
-            sy, sx, ty, tx = map(int, input().split())
+            print(
+                'input move four argument split by space\nsource_y source_x target_y target_x\n')
+            s = input()
+            if len(s.split()) == 4 and all(c.isdigit() for c in s.split()):
+                sy, sx, ty, tx = map(int, s.split())
 
         return (sy, sx, ty, tx)
