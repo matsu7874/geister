@@ -1,4 +1,7 @@
 import copy
+import json
+import time
+import collections
 
 
 class Geister:
@@ -13,6 +16,8 @@ class Geister:
         self.goods = [[] for i in range(2)]
         self.evils = [[] for i in range(2)]
         self.captured = [{'good': 0, 'evil': 0} for i in range(2)]
+        self.initial_placement = [[], []]
+        self.history = []
         for i in range(2):
             initial_placement = self.players[i].decide_initial_placement()
             self.set_initial_placement(i, initial_placement)
@@ -35,6 +40,7 @@ class Geister:
 
     def set_initial_placement(self, active, pattern):
         if self.validate_initial_placement(pattern):
+            self.initial_placement[active] = pattern[:]
             for i in range(2):
                 for j in range(4):
                     x = j + 1 + (3 - 2 * j) * active
@@ -81,6 +87,9 @@ class Geister:
         return status
 
     def play(self):
+        if self.turn > 500:
+            self.winner = 1
+            self.reason = 'over 500 turn'
         active = self.turn % 2
         active_player = self.players[active]
 
@@ -127,7 +136,7 @@ class Geister:
                 (sy + (5 - 2 * sy) * active, sx + (5 - 2 * sx) * active))
             self.evils[active].append(
                 (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active))
-
+        self.history.append((sy, sx, ty, tx))
         self.turn += 1
 
     def is_finish(self):
@@ -147,3 +156,33 @@ class Geister:
                 self.reason = "captured all own evil ghosts"
                 return True
         return False
+
+    def get_score(self):
+        score = collections.OrderedDict([('date', time.strftime("%Y-%m-%d", time.gmtime())),
+                                         ('white', self.players[0].get_name()),
+                                         ('black', self.players[1].get_name()),
+                                         ('result', ''),
+                                         ('max', self.turn),
+                                         ('position', [[], []]),
+                                         ('kif', [{'type': 'start'}])])
+        for i in range(2):
+            pos = []
+            for c in self.initial_placement[i]:
+                if c == 'g':
+                    pos.append(1 + 2 * i)
+                else:
+                    pos.append(2 + 2 * i)
+            score['position'][i] = pos[:]
+        for i in range(self.turn):
+            sy, sx, ty, tx = self.history[i]
+            if i % 2 == 1:
+                sy = 5 - sy
+                sx = 5 - sx
+                ty = 5 - ty
+                tx = 5 - tx
+            score['kif'].append(
+                {'from': [sx + 1, sy + 1], 'to': [tx + 1, ty + 1]})
+        score['kif'].append({'type': 'resign'})
+        if self.winner is not None:
+            score['result'] = str(1 - self.winner) + '-' + str(self.winner)
+        return json.dumps(score)
