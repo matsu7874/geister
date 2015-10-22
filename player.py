@@ -3,7 +3,7 @@ import random
 
 class Player:
 
-    def __init__(self, name='Alex'):
+    def __init__(self, name='Vanilla'):
         self.name = name
 
     def get_name(self):
@@ -12,7 +12,8 @@ class Player:
     def decide_initial_placement(self):
         return 'eeeegggg'
 
-    def choice_move(self, goods, evils, enemies, captured):
+    def choice_move(self, goods, evils, enemies, captured, histry=[]):
+        # choice randomly from legal hands
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
@@ -30,13 +31,10 @@ class Player:
 
 class ManualPlayer(Player):
 
-    def __init__(self, name='Alex'):
-        print('Input your name')
+    def __init__(self, name):
+        print('Input your name>>', end='')
         name = input()
         self.name = name
-
-    def get_name(self):
-        return self.name
 
     def decide_initial_placement(self):
         s = ''
@@ -45,7 +43,7 @@ class ManualPlayer(Player):
             s = input()
         return s
 
-    def choice_move(self, goods, evils, enemies, captured):
+    def choice_move(self, goods, evils, enemies, captured, histry=[]):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
@@ -71,6 +69,9 @@ class ManualPlayer(Player):
 
 class AiPlayer(Player):
 
+    def __init__(self, name='AI'):
+        self.name = name
+
     def decide_initial_placement(self):
         placement = 'eeeegggg'
         for i in range(8):
@@ -78,7 +79,7 @@ class AiPlayer(Player):
             placement = placement[:r] + placement[r:]
         return placement
 
-    def choice_move(self, goods, evils, enemies, captured):
+    def choice_move(self, goods, evils, enemies, captured, histry=[]):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
