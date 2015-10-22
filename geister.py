@@ -169,10 +169,10 @@ class Geister:
             pos = []
             for c in self.initial_placement[i]:
                 if c == 'g':
-                    pos.append(1 + 2 * i)
+                    pos.append(1 + 2 * (1-i))
                 else:
-                    pos.append(2 + 2 * i)
-            score['position'][i] = pos[:]
+                    pos.append(2 + 2 * (1-i))
+            score['position'][1-i] = pos[:]
         for i in range(self.turn):
             sy, sx, ty, tx = self.history[i]
             if i % 2 == 1:
