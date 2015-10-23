@@ -93,12 +93,12 @@ class Geister:
         active = self.turn % 2
         active_player = self.players[active]
 
-        goods = copy.copy(self.goods[active])
-        evils = copy.copy(self.evils[active])
-        enemies = copy.copy(self.goods[1 - active])
-        for e in copy.copy(self.evils[1 - active]):
+        goods = self.goods[active][:]
+        evils = self.evils[active][:]
+        enemies = self.goods[1 - active][:]
+        for e in self.evils[1 - active][:]:
             enemies.append(e)
-        captured = self.captured[1 - active]
+        captured = copy.copy(self.captured[1 - active])
 
         if active == 1:
             goods = [(5 - y, 5 - x) for y, x in goods]
@@ -169,10 +169,10 @@ class Geister:
             pos = []
             for c in self.initial_placement[i]:
                 if c == 'g':
-                    pos.append(1 + 2 * (1-i))
+                    pos.append(1 + 2 * (1 - i))
                 else:
-                    pos.append(2 + 2 * (1-i))
-            score['position'][1-i] = pos[:]
+                    pos.append(2 + 2 * (1 - i))
+            score['position'][1 - i] = pos[:]
         for i in range(self.turn):
             sy, sx, ty, tx = self.history[i]
             if i % 2 == 1:
