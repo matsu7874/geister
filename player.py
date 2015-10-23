@@ -76,7 +76,7 @@ class AiPlayer(Player):
         placement = 'eeeegggg'
         for i in range(8):
             r = random.randint(0, 8)
-            placement = placement[:r] + placement[r:]
+            placement = placement[r:] + placement[:r]
         return placement
 
     def choice_move(self, goods, evils, enemies, captured, histry=[]):
