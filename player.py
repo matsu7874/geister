@@ -12,7 +12,7 @@ class Player:
     def decide_initial_placement(self):
         return 'eeeegggg'
 
-    def choice_move(self, goods, evils, enemies, captured, histry=[]):
+    def choice_move(self, goods, evils, enemies, captured):
         # choice randomly from legal hands
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
@@ -43,7 +43,7 @@ class ManualPlayer(Player):
             s = input()
         return s
 
-    def choice_move(self, goods, evils, enemies, captured, histry=[]):
+    def choice_move(self, goods, evils, enemies, captured):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
@@ -79,7 +79,10 @@ class AiPlayer(Player):
             placement = placement[r:] + placement[:r]
         return placement
 
-    def choice_move(self, goods, evils, enemies, captured, histry=[]):
+    def evaluate(self, goods, evils, enemies, captured):
+        pass
+
+    def choice_move(self, goods, evils, enemies, captured):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []
