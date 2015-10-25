@@ -185,4 +185,5 @@ class Geister:
         score['kif'].append({'type': 'resign'})
         if self.winner is not None:
             score['result'] = str(1 - self.winner) + '-' + str(self.winner)
+            score.update({'reason':self.reason})
         return json.dumps(score)
