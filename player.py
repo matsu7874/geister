@@ -1,4 +1,6 @@
+import itertools
 import random
+import copy
 
 
 class Player:
@@ -59,7 +61,7 @@ class ManualPlayer(Player):
         sy, sx, ty, tx = -1, -1, -1, -1
         while (sy, sx, ty, tx) not in queue:
             print(
-                'input move four argument split by space\nsource_y source_x target_y target_x\n')
+                'input move four argument split by space\nsource_y source_x target_y target_x\n>>',end='')
             s = input()
             if len(s.split()) == 4 and all(c.isdigit() for c in s.split()):
                 sy, sx, ty, tx = map(int, s.split())
@@ -78,9 +80,6 @@ class AiPlayer(Player):
             r = random.randint(0, 8)
             placement = placement[r:] + placement[:r]
         return placement
-
-    def evaluate(self, goods, evils, enemies, captured):
-        pass
 
     def choice_move(self, goods, evils, enemies, captured):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
@@ -119,3 +118,145 @@ class AiPlayer(Player):
 
         pointed_queue.sort()
         return pointed_queue[0][1]
+
+
+class SakiyokmiAiPlayer(Player):
+
+    def __init__(self, name='Sakiyomi'):
+        self.name = name
+
+    def decide_initial_placement(self):
+        placement = 'eeeegggg'
+        for i in range(8):
+            r = random.randint(0, 8)
+            placement = placement[r:] + placement[:r]
+        return placement
+
+    def genelate_legal_hands(self, goods, evils, enemies):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        hands = []
+        my_ghosts = []
+        for g in goods:
+            my_ghosts.append(g)
+        for e in evils:
+            my_ghosts.append(e)
+        for y, x in my_ghosts:
+            for dy, dx in d:
+                if 0 <= y + dy < 6 and 0 <= x + dx < 6:
+                    if (y + dy, x + dx) not in my_ghosts:
+                        hands.append((y, x, y + dy, x + dx))
+        return hands
+
+    def evaluate(self, fg, fe, eg, ee):
+        score = 0
+        for y, x in fg:
+            score += y * y + max(5 - x, x)**2
+        for y, x in fe:
+            score += y * y + max(4 - x, x - 1)**2
+        for y, x in eg:
+            score += (5 - y) * (5 - y) + max(5 - x, x)**2
+        score += len(fg) * 100 + len(fe) * 75
+        score -= len(eg) * 99 + len(ee) * (-5)
+
+        return score
+
+    def sakiyomi(self, friend_goods, friend_evils, enemy_goods, enemy_evils, depth):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        fg = friend_goods[:]
+        fe = friend_evils[:]
+        eg = enemy_goods[:]
+        ee = enemy_evils[:]
+
+        if depth == 0:
+            return self.evaluate(friend_goods, friend_evils, enemy_goods, enemy_evils)
+
+        elif depth % 2 == 1:
+            for sy, sx, ty, tx in self.genelate_legal_hands(fg, fe, eg + ee):
+                diff = []
+                if (sy, sx) in fg:
+                    fg.remove((sy, sx))
+                    fg.append((ty, tx))
+                    diff.append(('fg', sy, sx, ty, tx))
+                else:
+                    fe.remove((sy, sx))
+                    fe.append((ty, tx))
+                    diff.append(('fe', sy, sx, ty, tx))
+                if (ty, tx) in eg:
+                    eg.remove((ty, tx))
+                    diff.append(('eg', ty, tx))
+                elif (ty, tx) in ee:
+                    ee.remove((ty, tx))
+                    diff.append(('ee', ty, tx))
+                self.sakiyomi(fg[:], fe[:], eg[:], ee[:], depth - 1)
+                for di in diff:
+                    if di[0] == 'fg':
+                        fg.remove((di[3], di[4]))
+                        fg.append((di[1], di[2]))
+                    if di[0] == 'fe':
+                        fe.remove((di[3], di[4]))
+                        fe.append((di[1], di[2]))
+                    if di[0] == 'eg':
+                        eg.append((di[1], di[2]))
+                    if di[0] == 'ee':
+                        ee.append((di[1], di[2]))
+        else:
+            fgr = [(5 - y, 5 - x) for y, x in fg]
+            fer = [(5 - y, 5 - x) for y, x in fe]
+            egr = [(5 - y, 5 - x) for y, x in eg]
+            eer = [(5 - y, 5 - x) for y, x in ee]
+            for sy, sx, ty, tx in self.genelate_legal_hands(egr, eer, fgr + fer):
+                diff = []
+                if (sy, sx) in egr:
+                    egr.remove((sy, sx))
+                    egr.append((ty, tx))
+                    diff.append(('eg', sy,  sx, ty, tx))
+                else:
+                    eer.remove((sy, sx))
+                    eer.append((ty, tx))
+                    diff.append(('ee',  sy,  sx,  ty, tx))
+                if (ty, tx) in fgr:
+                    fgr.remove((ty, tx))
+                    diff.append(('fg',  ty,  tx))
+                elif (ty, tx) in fer:
+                    fer.remove((ty, tx))
+                    diff.append(('fe',  ty,  tx))
+                self.sakiyomi(egr[:], eer[:], fgr[:], fer[:], depth - 1)
+                for di in diff:
+                    if di[0] == 'fg':
+                        fgr.append((di[1], di[2]))
+                    if di[0] == 'fe':
+                        fer.append((di[1], di[2]))
+                    if di[0] == 'eg':
+                        egr.remove((di[3], di[4]))
+                        egr.append((di[1], di[2]))
+                    if di[0] == 'ee':
+                        eer.remove((di[3], di[4]))
+                        eer.append((di[1], di[2]))
+
+    def choice_move(self, goods, evils, enemies, captured):
+        candidate = []
+        for sy, sx, ty, tx in self.genelate_legal_hands(goods, evils, enemies):
+            fg = goods[:]
+            fe = evils[:]
+            en = enemies[:]
+            eg = random.sample(en, 4 - captured['good'])
+            ee = []
+            for i in range(len(en)):
+                if en[i] not in eg:
+                    ee.append(en[i][:])
+            if (sy, sx) in goods:
+                fg.remove((sy, sx))
+                fg.append((ty, tx))
+            else:
+                fe.remove((sy, sx))
+                fe.append((ty, tx))
+            if (ty, tx) in eg:
+                eg.remove((ty, tx))
+            elif (ty, tx) in ee:
+                ee.remove((ty, tx))
+            score = self.sakiyomi(fg, fe, eg, ee, 3)
+            candidate.append((score, (sy, sx, ty, tx)))
+
+        candidate.sort()
+        candidate.reverse()
+        return candidate[0][1]
