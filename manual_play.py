@@ -1,9 +1,10 @@
 import player
 import geister
+import time
 
 
 def manual_play():
-    players = [player.ManualPlayer('Me'), player.AiPlayer('AI')]
+    players = [player.SAiPlayer(),player.SAiPlayer()]
     g = geister.Geister(players)
     while not g.is_finish():
         status = g.get_status()
@@ -27,6 +28,11 @@ def manual_play():
     status = g.get_status()
     print(status)
     print(status['winner'], status['reason'])
+    file_name = 'kif_'+time.strftime("%Y%m%d_%H%M%S", time.gmtime())+'.json'
+    f = open(file_name,'a')
+    f.write(g.get_score()+'\n')
+    f.close()
+
 
 if __name__ == '__main__':
     manual_play()
