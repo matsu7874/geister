@@ -87,9 +87,9 @@ class Geister:
         return status
 
     def play(self):
-        if self.turn > 500:
+        if self.turn > 200:
             self.winner = 1
-            self.reason = 'over 500 turn'
+            self.reason = 'over 200 turn'
         active = self.turn % 2
         active_player = self.players[active]
 
