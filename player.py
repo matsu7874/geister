@@ -1,18 +1,29 @@
 import itertools
 import random
-import copy
 
 
 class Player:
 
-    def __init__(self, name='Vanilla'):
+    def __init__(self, color, name='Vanilla'):
         self.name = name
+        self.color = color
 
     def get_name(self):
         return self.name
 
+    def get_color(self):
+        return self.color
+
     def decide_initial_placement(self):
-        return 'eeeegggg'
+        placement = ''
+        for i in range(8):
+            if placement.count('g') >= 4:
+                placement += 'e'
+            elif placement.count('e') >= 4:
+                placement += 'g'
+            else:
+                placement += 'ge'[random.randint(0, 1)]
+        return placement
 
     def choice_move(self, goods, evils, enemies, captured):
         # choice randomly from legal hands
@@ -29,44 +40,6 @@ class Player:
                     if (y + dy, x + dx) not in my_ghosts:
                         queue.append((y, x, y + dy, x + dx))
         return random.choice(queue)
-
-
-class ManualPlayer(Player):
-
-    def __init__(self, name):
-        print('Input your name>>', end='')
-        name = input()
-        self.name = name
-
-    def decide_initial_placement(self):
-        s = ''
-        while not(len(s) == 8 and all(c == 'g' or c == 'e' for c in s)):
-            print('input initial placement of pieces')
-            s = input()
-        return s
-
-    def choice_move(self, goods, evils, enemies, captured):
-        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
-        queue = []
-        my_ghosts = []
-        for g in goods:
-            my_ghosts.append(g)
-        for e in evils:
-            my_ghosts.append(e)
-        for y, x in my_ghosts:
-            for dy, dx in d:
-                if 0 <= y + dy < 6 and 0 <= x + dx < 6:
-                    if (y + dy, x + dx) not in my_ghosts:
-                        queue.append((y, x, y + dy, x + dx))
-        sy, sx, ty, tx = -1, -1, -1, -1
-        while (sy, sx, ty, tx) not in queue:
-            print(
-                'input move four argument split by space\nsource_y source_x target_y target_x\n>>',end='')
-            s = input()
-            if len(s.split()) == 4 and all(c.isdigit() for c in s.split()):
-                sy, sx, ty, tx = map(int, s.split())
-
-        return (sy, sx, ty, tx)
 
 
 class AiPlayer(Player):
@@ -148,16 +121,21 @@ class SakiyokmiAiPlayer(Player):
         return hands
 
     def evaluate(self, fg, fe, eg, ee):
-        score = 0
+        score = random.randint(1, 15)
         for y, x in fg:
-            score += y * y + max(5 - x, x)**2
+            score += 100 - 10 * ((5 - y) + (5 - min(5 - x, x)))
         for y, x in fe:
-            score += y * y + max(4 - x, x - 1)**2
+            score += 90 - 8 * ((4 - y) + (4 - min(4 - x, x + 1)))
         for y, x in eg:
-            score += (5 - y) * (5 - y) + max(5 - x, x)**2
-        score += len(fg) * 100 + len(fe) * 75
-        score -= len(eg) * 99 + len(ee) * (-5)
-
+            score += -30 - 5 * ((5 - y) + (5 - min(5 - x, x)))
+        for y, x in ee:
+            score += -20 - 5 * ((5 - y) + (5 - min(5 - x, x)))
+        for y, x in fg:
+            for ey, ex in eg + ee:
+                if abs(y - ey) + abs(x - ex) == 1:
+                    score -= 50000
+                else:
+                    score += 5
         return score
 
     def sakiyomi(self, friend_goods, friend_evils, enemy_goods, enemy_evils, depth):
@@ -220,7 +198,11 @@ class SakiyokmiAiPlayer(Player):
                 elif (ty, tx) in fer:
                     fer.remove((ty, tx))
                     diff.append(('fe',  ty,  tx))
-                self.sakiyomi(egr[:], eer[:], fgr[:], fer[:], depth - 1)
+                fgrr = [(5 - y, 5 - x) for y, x in fgr]
+                ferr = [(5 - y, 5 - x) for y, x in fer]
+                egrr = [(5 - y, 5 - x) for y, x in egr]
+                eerr = [(5 - y, 5 - x) for y, x in eer]
+                self.sakiyomi(fgrr[:], ferr[:], egrr[:], eerr[:],  depth - 1)
                 for di in diff:
                     if di[0] == 'fg':
                         fgr.append((di[1], di[2]))
@@ -255,6 +237,89 @@ class SakiyokmiAiPlayer(Player):
             elif (ty, tx) in ee:
                 ee.remove((ty, tx))
             score = self.sakiyomi(fg, fe, eg, ee, 3)
+            candidate.append((score, (sy, sx, ty, tx)))
+
+        candidate.sort()
+        candidate.reverse()
+        return candidate[0][1]
+
+
+class SAiPlayer(Player):
+
+    def __init__(self, name='Sai'):
+        self.name = name
+
+    def decide_initial_placement(self):
+        placement = 'eeeegggg'
+        for i in range(24):
+            r = random.randint(0, 8)
+            placement = placement[r:] + placement[:r]
+        return placement
+
+    def genelate_legal_hands(self, goods, evils, enemies):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        hands = []
+        my_ghosts = []
+        for g in goods:
+            my_ghosts.append(g)
+        for e in evils:
+            my_ghosts.append(e)
+        for y, x in my_ghosts:
+            for dy, dx in d:
+                if 0 <= y + dy < 6 and 0 <= x + dx < 6:
+                    if (y + dy, x + dx) not in my_ghosts:
+                        hands.append((y, x, y + dy, x + dx))
+        return hands
+
+    def evaluate(self, fg, fe, eg, ee):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        score = random.randint(1, 10)
+        for y, x in fg:
+            score -= [1000, 500, 300, 200, 100, 50, 25, 15,
+                      10, 0, 0][(10 - (5 - y) - (5 - min(5 - x, x)))]
+        for y, x in fe:
+            score -= 0.3 * [1000, 500, 300, 200, 100, 50, 25,
+                            15, 10, 0, 0][(10 - (5 - y) - (5 - min(5 - x, x)))]
+        for y, x in eg + ee:
+            score += -1 * [10000, 1500, 300, 200, 100, 50, 25, 15,
+                           10, 0, 0][(10 - (5 - y) - (5 - min(5 - x, x)))] - 10
+        for y, x in fg:
+            for ey, ex in eg + ee:
+                d = abs(y - ey) + abs(x - ex)
+                if d == 1:
+                    score -= 1000
+        return score
+
+    def sakiyomi(self, friend_goods, friend_evils, enemy_goods, enemy_evils, depth):
+        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
+        fg = friend_goods[:]
+        fe = friend_evils[:]
+        eg = enemy_goods[:]
+        ee = enemy_evils[:]
+        return random.randint(1, 10000)
+
+    def choice_move(self, goods, evils, enemies, captured):
+        candidate = []
+        for sy, sx, ty, tx in self.genelate_legal_hands(goods, evils, enemies):
+            fg = goods[:]
+            fe = evils[:]
+            en = enemies[:]
+            eg = random.sample(en, 4 - captured['good'])
+            ee = []
+            for i in range(len(en)):
+                if en[i] not in eg:
+                    ee.append(en[i][:])
+            if (sy, sx) in goods:
+                fg.remove((sy, sx))
+                fg.append((ty, tx))
+            else:
+                fe.remove((sy, sx))
+                fe.append((ty, tx))
+            if (ty, tx) in eg:
+                eg.remove((ty, tx))
+            elif (ty, tx) in ee:
+                ee.remove((ty, tx))
+            score = self.evaluate(fg, fe, eg, ee)
             candidate.append((score, (sy, sx, ty, tx)))
 
         candidate.sort()
