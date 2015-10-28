@@ -10,11 +10,13 @@ import manualplayer
 
 def play(times=100):
     random.seed()
-    players = [player.Player(), player.Player()]
+    players = [player.Player(color='White'), player.Player(color='Black')]
+    # players = [montecarloplayer.MonteCarloPlayer(color='White'), player.Player(color='Black')]
+    # players = [montecarloplayer.MonteCarloPlayer(color='White'), montecarloplayer.MonteCarloPlayer(color='Black')]
     start_time = time.strftime("%Y%m%d_%H%M%S", time.gmtime())
-    file_name = 'score_' + start_time + '.json'
+    file_name = 'score\score_' + start_time + '.json'
 
-    result = [{} for i in range(2)]
+    result = {'White': {}, 'Black': {}}
     total_turn = 0
 
     for i in range(times):
@@ -33,12 +35,13 @@ def play(times=100):
         f.write(g.get_score() + '\n')
         f.close()
         total_turn += status['turn']
-    win = [0, 0]
-    for i in range(2):
-        for k, v in result[i].items():
-            print(i, k, v)
-            win[i] += v
-    print(win[0], '/', win[1])
+
+    win = {'White': 0, 'Black': 0}
+    for c in ['White','Black']:
+        for k, v in result[c].items():
+            print(c, k, v)
+            win[c] += v
+    print(win['White'], '/', win['Black'])
     print('total turn:', total_turn)
 
 if __name__ == '__main__':

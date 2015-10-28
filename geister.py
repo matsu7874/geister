@@ -7,22 +7,38 @@ import collections
 class Geister:
 
     def __init__(self, players):
-        if isinstance(players, list):
-            self.players = players
-        else:
-            print('first argument must be list of player')
-            exit()
+        self.players = {'White': players[0], 'Black': players[1]}
+        self.players['White'].set_color('White')
+        self.players['Black'].set_color('Black')
         self.turn = 0
-        self.goods = [[] for i in range(2)]
-        self.evils = [[] for i in range(2)]
-        self.captured = [{'good': 0, 'evil': 0} for i in range(2)]
-        self.initial_placement = [[], []]
+        self.goods = {'White': [], 'Black': []}
+        self.evils = {'White': [], 'Black': []}
+        self.captured = {'White': {'good': 0, 'evil': 0},
+                         'Black': {'good': 0, 'evil': 0}}
+        self.initial_placement = {'White': [], 'Black': []}
         self.history = []
         for i in range(2):
-            initial_placement = self.players[i].decide_initial_placement()
-            self.set_initial_placement(i, initial_placement)
+            active_player = self.players[self.int_to_color(i)]
+            initial_placement = active_player.decide_initial_placement()
+            self.set_initial_placement(self.int_to_color(i), initial_placement)
         self.winner = None
         self.reason = None
+
+    def color_to_int(self, color):
+        if color == 'White':
+            return 0
+        elif color == 'Black':
+            return 1
+        else:
+            return -1
+
+    def int_to_color(self, n):
+        if n == 0:
+            return 'White'
+        elif n == 1:
+            return 'Black'
+        else:
+            return None
 
     def validate_initial_placement(self, pattern):
         cnt_g = 0
@@ -38,75 +54,69 @@ class Geister:
             return True
         return False
 
-    def set_initial_placement(self, active, pattern):
+    def set_initial_placement(self, color, pattern):
+        active = self.color_to_int(color)
         if self.validate_initial_placement(pattern):
-            self.initial_placement[active] = pattern[:]
+            self.initial_placement[color] = pattern[:]
             for i in range(2):
                 for j in range(4):
                     x = j + 1 + (3 - 2 * j) * active
                     y = 1 - i + (3 + 2 * i) * active
                     piece = pattern[i * 4 + j]
-                    piece_index = 'ge'.index(piece) + 2 * active + 1
                     if pattern[i * 4 + j] == 'g':
-                        self.goods[active].append((y, x))
+                        self.goods[color].append((y, x))
                     else:
-                        self.evils[active].append((y, x))
+                        self.evils[color].append((y, x))
         else:
-            print('In set_initial_placement(), pattern is wrong pattern')
+            self.status['winner'] = self.int_to_color((active + 1) % 2)
+            self.status['reason'] = 'opponent did foul (wrong initial).'
+            return False
+        return True
 
     def print_status(self):
         status = ''
-        status += 'Turn ' + str(self.turn) + ' Player ' + \
-            str(self.turn % 2) + '\n'
+        status += 'Turn ' + str(self.turn) + self.int_to_color(self.turn % 2)
         board = [['-' for j in range(6)] for i in range(6)]
         for i in range(2):
-            for y, x in self.goods[i]:
+            for y, x in self.goods[self.int_to_color(i)]:
                 board[y][x] = 'gG'[i]
-            for y, x in self.evils[i]:
+            for y, x in self.evils[self.int_to_color(i)]:
                 board[y][x] = 'eE'[i]
         for i in range(6):
             status += ''.join(c for c in board[i]) + '\n'
         if self.winner is not None:
-            status += 'Winner is ' + str(self.winner) + '\n'
+            status += 'Winner is ' + self.winner + '\n'
             status += 'win reason is ' + self.reason + '\n'
         return status
 
     def get_status(self):
         status = {}
-        status.update({'turn': self.turn, 'active_player': self.turn % 2})
-        status.update({'active_goods': copy.copy(self.goods[self.turn % 2])})
-        status.update({'active_evils': copy.copy(self.evils[self.turn % 2])})
-        status.update({'captured': copy.copy(
-            self.captured[(self.turn + 1) % 2])})
-        status.update({'opponent_goods': copy.copy(
-            self.goods[(self.turn + 1) % 2])})
-        status.update({'opponent_evils': copy.copy(
-            self.evils[(self.turn + 1) % 2])})
+        status.update({'turn': self.turn})
+        status.update({'active_player': self.int_to_color(self.turn % 2)})
+        status.update({'goods': copy.deepcopy(self.goods)})
+        status.update({'evils': copy.deepcopy(self.evils)})
+        status.update({'captured': copy.deepcopy(self.captured)})
         status.update({'winner': self.winner})
         status.update({'reason': self.reason})
         return status
 
     def play(self):
         if self.turn > 200:
-            self.winner = 1
+            self.winner = 'Black'
             self.reason = 'over 200 turn'
         active = self.turn % 2
-        active_player = self.players[active]
+        active_color = self.int_to_color(active)
+        active_player = self.players[self.int_to_color(active)]
+        opponent = 1 - active
+        opponent_color = self.int_to_color(opponent)
 
-        goods = self.goods[active][:]
-        evils = self.evils[active][:]
-        enemies = self.goods[1 - active][:]
-        for e in self.evils[1 - active][:]:
-            enemies.append(e)
-        captured = copy.copy(self.captured[1 - active])
+        goods = self.goods[self.int_to_color(active)][:]
+        evils = self.evils[self.int_to_color(active)][:]
+        enemies = self.goods[opponent_color][:] + self.evils[opponent_color][:]
+        captured = copy.copy(self.captured[opponent_color])
 
-        if active == 1:
-            goods = [(5 - y, 5 - x) for y, x in goods]
-            evils = [(5 - y, 5 - x) for y, x in evils]
-            enemies = [(5 - y, 5 - x) for y, x in enemies]
-
-        sy, sx, ty, tx = active_player.choice_move(
-            goods, evils, enemies, captured)
+        pieces = goods, evils, enemies, captured
+        sy, sx, ty, tx = active_player.choice_move(*pieces)
 
         if (sy, sx) not in goods and (sy, sx) not in evils:
             print((sy, sx), goods, evils)
@@ -116,58 +126,69 @@ class Geister:
             print('there is team ghost')
             exit()
         if (ty, tx) in enemies:
-            if (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.goods[(active + 1) % 2]:
-                self.goods[(active + 1) % 2].remove((ty + (5 - 2 * ty)
-                                                     * active, tx + (5 - 2 * tx) * active))
-                self.captured[(active + 1) % 2]['good'] += 1
-            elif (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active) in self.evils[(active + 1) % 2]:
-                self.evils[(active + 1) % 2].remove((ty + (5 - 2 * ty)
-                                                     * active, tx + (5 - 2 * tx) * active))
-                self.captured[(active + 1) % 2]['evil'] += 1
+            if (ty, tx) in self.goods[opponent_color]:
+                self.goods[opponent_color].remove((ty, tx))
+                self.captured[opponent_color]['good'] += 1
+            elif (ty, tx) in self.evils[opponent_color]:
+                self.evils[opponent_color].remove((ty, tx))
+                self.captured[opponent_color]['evil'] += 1
             else:
                 print('nanika okashii')
+                exit()
         if (sy, sx) in goods:
-            self.goods[active].remove(
-                (sy + (5 - 2 * sy) * active, sx + (5 - 2 * sx) * active))
-            self.goods[active].append(
-                (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active))
+            self.goods[active_color].remove((sy, sx))
+            self.goods[active_color].append((ty, tx))
+        elif (sy, sx) in evils:
+            self.evils[active_color].remove((sy, sx))
+            self.evils[active_color].append((ty, tx))
         else:
-            self.evils[active].remove(
-                (sy + (5 - 2 * sy) * active, sx + (5 - 2 * sx) * active))
-            self.evils[active].append(
-                (ty + (5 - 2 * ty) * active, tx + (5 - 2 * tx) * active))
+            exit()
         self.history.append((sy, sx, ty, tx))
         self.turn += 1
 
     def is_finish(self):
+        # 移動終了後からターンを進めるまでの間に呼ばれることを想定
         if self.winner is not None:
             return True
-        if any((g == (5 * ((self.turn % 2 + 1) % 2) + 0, 0)) or (g == (5 * ((self.turn % 2 + 1) % 2) + 0, 5)) for g in self.goods[self.turn % 2]):
-            self.winner = self.turn % 2
-            self.reason = 'escapable from the deepest line'
-            return True
-        for i in range(2):
-            if len(self.goods[(i + 1) % 2]) == 0:
-                self.winner = i
+        elif self.turn % 2 == 0:
+            if any(g in [(0, 0), (0, 5)] for g in self.goods['Black']):
+                self.winner = 'Black'
+                self.reason = 'escapable from the deepest line'
+            elif self.captured['Black']['good'] == 4:
+                self.winner = 'White'
                 self.reason = "captured all opponent's good ghosts"
+            elif self.captured['Black']['evil'] == 4:
+                self.winner = 'Black'
+                self.reason = 'captured all own evil ghosts'
+            else:
+                return False
+        else:
+            if any(g in [(5, 0), (5, 5)] for g in self.goods['White']):
+                self.winner = 'White'
+                self.reason = 'escapable from the deepest line'
                 return True
-            if len(self.evils[i]) == 0:
-                self.winner = i
-                self.reason = "captured all own evil ghosts"
-                return True
-        return False
+            elif self.captured['White']['good'] == 4:
+                self.winner = 'Black'
+                self.reason = "captured all opponent's good ghosts"
+            elif self.captured['White']['evil'] == 4:
+                self.winner = 'White'
+                self.reason = 'captured all own evil ghosts'
+            else:
+                return False
+        return True
 
     def get_score(self):
-        score = collections.OrderedDict([('date', time.strftime("%Y-%m-%d", time.gmtime())),
-                                         ('white', self.players[0].get_name()),
-                                         ('black', self.players[1].get_name()),
-                                         ('result', ''),
-                                         ('max', self.turn),
-                                         ('position', [[], []]),
-                                         ('kif', [{'type': 'start'}])])
+        score = collections.OrderedDict(
+            [('date', time.strftime("%Y-%m-%d", time.gmtime())),
+             ('white', self.players['White'].get_name()),
+             ('black', self.players['Black'].get_name()),
+             ('result', ''),
+             ('max', self.turn),
+             ('position', [[], []]),
+             ('kif', [{'type': 'start'}])])
         for i in range(2):
             pos = []
-            for c in self.initial_placement[i]:
+            for c in self.initial_placement[self.int_to_color(i)]:
                 if c == 'g':
                     pos.append(1 + 2 * (1 - i))
                 else:
@@ -175,15 +196,11 @@ class Geister:
             score['position'][1 - i] = pos[:]
         for i in range(self.turn):
             sy, sx, ty, tx = self.history[i]
-            if i % 2 == 1:
-                sy = 5 - sy
-                sx = 5 - sx
-                ty = 5 - ty
-                tx = 5 - tx
             score['kif'].append(
                 {'from': [sx + 1, sy + 1], 'to': [tx + 1, ty + 1]})
         score['kif'].append({'type': 'resign'})
         if self.winner is not None:
-            score['result'] = str(1 - self.winner) + '-' + str(self.winner)
-            score.update({'reason':self.reason})
+            winner_int = self.color_to_int(self.winner)
+            score['result'] = str(1 - winner_int) + '-' + str(winner_int)
+            score.update({'reason': self.reason})
         return json.dumps(score)
