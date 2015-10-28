@@ -28,7 +28,7 @@ def manual_play():
     status = g.get_status()
     print(status)
     print(status['winner'], status['reason'])
-    file_name = 'kif_'+time.strftime("%Y%m%d_%H%M%S", time.gmtime())+'.json'
+    file_name = 'score\score_'+time.strftime("%Y%m%d_%H%M%S", time.gmtime())+'.json'
     f = open(file_name,'a')
     f.write(g.get_score()+'\n')
     f.close()
