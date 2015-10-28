@@ -115,7 +115,7 @@ class Geister:
         enemies = self.goods[opponent_color][:] + self.evils[opponent_color][:]
         captured = copy.copy(self.captured[opponent_color])
 
-        pieces = goods, evils, enemies, captured
+        pieces = self.turn, goods, evils, enemies, captured
         sy, sx, ty, tx = active_player.choice_move(*pieces)
 
         if (sy, sx) not in goods and (sy, sx) not in evils:

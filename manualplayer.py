@@ -17,7 +17,7 @@ class ManualPlayer(player.Player):
             s = input()
         return s
 
-    def choice_move(self, goods, evils, enemies, captured):
+    def choice_move(self, turn,goods, evils, enemies, captured):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
         my_ghosts = []

@@ -4,7 +4,7 @@ import random
 
 class Player:
 
-    def __init__(self, color, name='Vanilla'):
+    def __init__(self, color='Black', name='Vanilla'):
         self.name = name
         self.color = color
 
@@ -13,6 +13,10 @@ class Player:
 
     def get_color(self):
         return self.color
+
+    def set_color(self, color):
+        if color in ['White', 'Black']:
+            self.color = color
 
     def decide_initial_placement(self):
         placement = ''
@@ -25,7 +29,7 @@ class Player:
                 placement += 'ge'[random.randint(0, 1)]
         return placement
 
-    def choice_move(self, goods, evils, enemies, captured):
+    def choice_move(self, turn, goods, evils, enemies, captured):
         # choice randomly from legal hands
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         queue = []
