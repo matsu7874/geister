@@ -3,7 +3,7 @@ import player
 
 class ManualPlayer(player.Player):
 
-    def __init__(self, color, name):
+    def __init__(self, name=''):
         print('Input your name\n>>', end='')
         name = input()
         self.name = name
