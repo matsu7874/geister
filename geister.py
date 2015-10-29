@@ -101,9 +101,9 @@ class Geister:
         return status
 
     def play(self):
-        if self.turn > 200:
+        if self.turn > 100:
             self.winner = 'Black'
-            self.reason = 'over 200 turn'
+            self.reason = 'over 100 turn'
         active = self.turn % 2
         active_color = self.int_to_color(active)
         active_player = self.players[self.int_to_color(active)]
@@ -151,9 +151,10 @@ class Geister:
         if self.winner is not None:
             return True
         elif self.turn % 2 == 0:
-            if any(g in [(0, 0), (0, 5)] for g in self.goods['Black']):
-                self.winner = 'Black'
+            if any(g in [(5, 0), (5, 5)] for g in self.goods['White']):
+                self.winner = 'White'
                 self.reason = 'escapable from the deepest line'
+                return True
             elif self.captured['Black']['good'] == 4:
                 self.winner = 'White'
                 self.reason = "captured all opponent's good ghosts"
@@ -163,10 +164,9 @@ class Geister:
             else:
                 return False
         else:
-            if any(g in [(5, 0), (5, 5)] for g in self.goods['White']):
-                self.winner = 'White'
+            if any(g in [(0, 0), (0, 5)] for g in self.goods['Black']):
+                self.winner = 'Black'
                 self.reason = 'escapable from the deepest line'
-                return True
             elif self.captured['White']['good'] == 4:
                 self.winner = 'Black'
                 self.reason = "captured all opponent's good ghosts"
