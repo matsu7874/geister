@@ -7,11 +7,10 @@ import player
 import montecarloplayer
 import manualplayer
 
-
 def play(times=100):
     random.seed()
-    players = [player.Player(color='White'), player.Player(color='Black')]
-    # players = [montecarloplayer.MonteCarloPlayer(color='White'), player.Player(color='Black')]
+    # players = [player.Player(color='White'), player.Player(color='Black')]
+    players = [montecarloplayer.MonteCarloPlayer(), player.Player()]
     # players = [montecarloplayer.MonteCarloPlayer(color='White'), montecarloplayer.MonteCarloPlayer(color='Black')]
     start_time = time.strftime("%Y%m%d_%H%M%S", time.gmtime())
     file_name = 'score\score_' + start_time + '.json'
@@ -22,7 +21,6 @@ def play(times=100):
     for i in range(times):
         g = geister.Geister(players)
         while not g.is_finish():
-            # status = g.get_status()
             g.play()
         status = g.get_status()
 
