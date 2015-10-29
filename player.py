@@ -29,21 +29,19 @@ class Player:
                 placement += 'ge'[random.randint(0, 1)]
         return placement
 
-    def choice_move(self, turn, goods, evils, enemies, captured):
-        # choice randomly from legal hands
+    def generate_legal_moves(self, friends):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
-        queue = []
-        my_ghosts = []
-        for g in goods:
-            my_ghosts.append(g)
-        for e in evils:
-            my_ghosts.append(e)
-        for y, x in my_ghosts:
+        moves = []
+        for y, x in friends:
             for dy, dx in d:
                 if 0 <= y + dy < 6 and 0 <= x + dx < 6:
-                    if (y + dy, x + dx) not in my_ghosts:
-                        queue.append((y, x, y + dy, x + dx))
-        return random.choice(queue)
+                    if (y + dy, x + dx) not in friends:
+                        moves.append((y, x, y + dy, x + dx))
+        return moves
+
+    def choice_move(self, turn, goods, evils, enemies, captured):
+        # choice randomly from legal hands
+        return random.choice(self.generate_legal_moves(goods + evils))
 
 
 class AiPlayer(Player):
@@ -109,7 +107,7 @@ class SakiyokmiAiPlayer(Player):
             placement = placement[r:] + placement[:r]
         return placement
 
-    def genelate_legal_hands(self, goods, evils, enemies):
+    def generate_legal_hands(self, goods, evils, enemies):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         hands = []
         my_ghosts = []
@@ -153,7 +151,7 @@ class SakiyokmiAiPlayer(Player):
             return self.evaluate(friend_goods, friend_evils, enemy_goods, enemy_evils)
 
         elif depth % 2 == 1:
-            for sy, sx, ty, tx in self.genelate_legal_hands(fg, fe, eg + ee):
+            for sy, sx, ty, tx in self.generate_legal_hands(fg, fe, eg + ee):
                 diff = []
                 if (sy, sx) in fg:
                     fg.remove((sy, sx))
@@ -186,7 +184,7 @@ class SakiyokmiAiPlayer(Player):
             fer = [(5 - y, 5 - x) for y, x in fe]
             egr = [(5 - y, 5 - x) for y, x in eg]
             eer = [(5 - y, 5 - x) for y, x in ee]
-            for sy, sx, ty, tx in self.genelate_legal_hands(egr, eer, fgr + fer):
+            for sy, sx, ty, tx in self.generate_legal_hands(egr, eer, fgr + fer):
                 diff = []
                 if (sy, sx) in egr:
                     egr.remove((sy, sx))
@@ -221,7 +219,7 @@ class SakiyokmiAiPlayer(Player):
 
     def choice_move(self, goods, evils, enemies, captured):
         candidate = []
-        for sy, sx, ty, tx in self.genelate_legal_hands(goods, evils, enemies):
+        for sy, sx, ty, tx in self.generate_legal_hands(goods, evils, enemies):
             fg = goods[:]
             fe = evils[:]
             en = enemies[:]
@@ -260,7 +258,7 @@ class SAiPlayer(Player):
             placement = placement[r:] + placement[:r]
         return placement
 
-    def genelate_legal_hands(self, goods, evils, enemies):
+    def generate_legal_hands(self, goods, evils, enemies):
         d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         hands = []
         my_ghosts = []
@@ -304,7 +302,7 @@ class SAiPlayer(Player):
 
     def choice_move(self, goods, evils, enemies, captured):
         candidate = []
-        for sy, sx, ty, tx in self.genelate_legal_hands(goods, evils, enemies):
+        for sy, sx, ty, tx in self.generate_legal_hands(goods, evils, enemies):
             fg = goods[:]
             fe = evils[:]
             en = enemies[:]
