@@ -23,7 +23,7 @@ class MonteCarloPlayer(player.Player):
     def choice_move(self, turn, goods, evils, enemies, captured):
         moves = []
         for move in self.generate_legal_moves(goods + evils):
-            score = self.evaluate(goods, evils, enemies, captured, move)
+            score = self.evaluate(turn, goods, evils, enemies, captured, move)
             moves.append((score, move[:]))
         moves.sort()
         moves.reverse()
@@ -33,33 +33,32 @@ class MonteCarloPlayer(player.Player):
         # f.close()
         return moves[0][1]
 
-    def evaluate(self, goods, evils, enemies, captured, move):
+    def evaluate(self, turn, goods, evils, enemies, captured, move):
         opponent_color = 'Black' if self.color == 'White' else 'White'
         win = 0
         for i in range(100):
             fg = goods[:]
             fe = evils[:]
-            if (move[0],move[1]) in fg:
-                fg.remove((move[0],move[1]))
-                fg.append((move[2],move[3]))
+            if (move[0], move[1]) in fg:
+                fg.remove((move[0], move[1]))
+                fg.append((move[2], move[3]))
             else:
-                fe.remove((move[0],move[1]))
-                fe.append((move[2],move[3]))
-                if len(fe)==0:
+                fe.remove((move[0], move[1]))
+                fe.append((move[2], move[3]))
+                if len(fe) == 0:
                     continue
             eg = random.sample(enemies, 4 - captured['good'])[:]
             ee = [e[:] for e in enemies if e not in eg]
-            if (move[2],move[3]) in eg:
-                eg.remove((move[2],move[3]))
-            elif (move[2],move[3]) in ee:
-                ee.remove((move[2],move[3]))
-            if self.playout(opponent_color, fg[:], fe[:], eg[:], ee[:]):
+            if (move[2], move[3]) in eg:
+                eg.remove((move[2], move[3]))
+            elif (move[2], move[3]) in ee:
+                ee.remove((move[2], move[3]))
+            if self.playout(opponent_color, turn,  fg[:], fe[:], eg[:], ee[:]):
                 win += 1
         return win
 
-    def playout(self, active, friend_goods, friend_evils, enemy_goods, enemy_evils):
-        turn = 0
-        while not self.is_finish(active, friend_goods, friend_evils, enemy_goods, enemy_evils) and turn<100:
+    def playout(self, active,turn, friend_goods, friend_evils, enemy_goods, enemy_evils):
+        while not self.is_finish(active, friend_goods, friend_evils, enemy_goods, enemy_evils) and turn < 100:
             if active == self.color:
                 moves = self.generate_legal_moves(friend_goods + friend_evils)
                 move = random.choice(moves)
@@ -91,7 +90,7 @@ class MonteCarloPlayer(player.Player):
             else:
                 active = 'White'
             turn += 1
-        return self.did_won(active,friend_goods, friend_evils, enemy_goods, enemy_evils)
+        return self.did_won(active, friend_goods, friend_evils, enemy_goods, enemy_evils)
 
     def is_finish(self, active, friend_goods, friend_evils, enemy_goods, enemy_evils):
         # ターン開始直前に呼ばれることを想定
@@ -122,7 +121,7 @@ class MonteCarloPlayer(player.Player):
                 return False
         return True
 
-    def did_won(self,active, friend_goods, friend_evils, enemy_goods, enemy_evils):
+    def did_won(self, active, friend_goods, friend_evils, enemy_goods, enemy_evils):
         # ゲームが終了していることが確かめられた上で呼ばれる
         if len(friend_evils) == 0 or len(enemy_goods) == 0:
             return True
