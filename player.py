@@ -30,13 +30,20 @@ class Player:
         return placement
 
     def generate_legal_moves(self, friends):
-        d = ((1, 0), (-1, 0), (0, 1), (0, -1))
         moves = []
         for y, x in friends:
-            for dy, dx in d:
-                if 0 <= y + dy < 6 and 0 <= x + dx < 6:
-                    if (y + dy, x + dx) not in friends:
-                        moves.append((y, x, y + dy, x + dx))
+            if y > 0:
+                if (y - 1, x) not in friends:
+                    moves.append((y, x, y - 1, x))
+            if y < 5:
+                if (y + 1, x) not in friends:
+                    moves.append((y, x, y + 1, x))
+            if x > 0:
+                if (y, x - 1) not in friends:
+                    moves.append((y, x, y, x - 1))
+            if x < 5:
+                if (y, x + 1) not in friends:
+                    moves.append((y, x, y, x + 1))
         return moves
 
     def choice_move(self, turn, goods, evils, enemies, captured):
