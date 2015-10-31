@@ -52,3 +52,48 @@ class SquarePlayer(player.Player):
             score += self.scores[p]
 
         return score
+class SquarePlayer2(player.Player):
+
+    def __init__(self, name='Square'):
+        self.name = name
+        self.scores = [random.randint(1,10000) for i in range(6400)]
+
+    def set_scores(self, scores):
+        self.scores = scores
+
+    def choice_move(self, turn, goods, evils, enemies, captured):
+        moves = []
+        for move in self.generate_legal_moves(goods + evils):
+            score = self.evaluate(turn, goods, evils, enemies, captured, move)
+            moves.append((score, move[:]))
+        moves.sort()
+        moves.reverse()
+        return moves[0][1]
+
+    def evaluate(self, turn, goods, evils, enemies, captured, move):
+        fg = goods[:]
+        fe = evils[:]
+        if (move[0], move[1]) in fg:
+            fg.remove((move[0], move[1]))
+            fg.append((move[2], move[3]))
+        else:
+            fe.remove((move[0], move[1]))
+            fe.append((move[2], move[3]))
+        en = enemies[:]
+        if (move[2], move[3]) in en:
+            en.remove((move[2], move[3]))
+
+        score = 0
+        d = [(0,0),(0,1),(1,0),(1,1)]
+        for i in range(5):
+            for j in range(5):
+                p = (i*5+j)*256
+                for k in range(4):
+                    if (i+d[k][0], j+d[k][1]) in fg:
+                        p += 1*4**k
+                    elif (i+d[k][0], j+d[k][1]) in fe:
+                        p += 2*4**k
+                    elif (i+d[k][0], j+d[k][1]) in en:
+                        p += 3*4**k
+                score += self.scores[p]
+        return score
